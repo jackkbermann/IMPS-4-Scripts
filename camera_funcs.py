@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QImage, QPixmap
 from pco import Camera
 from constants import EXPOSURE_TIMES
 import numpy as np 
@@ -8,24 +8,30 @@ import os
 import time
 from PIL import Image
 
-# Live view function to display camera feed in real-time
-def live_view():
+
+def cv_to_qt(image):
+    # Normalize 16-bit to 8-bit for display
+    image_8bit = cv2.convertScaleAbs(image, alpha=(255.0/65535.0))
+    h, w = image_8bit.shape
+    qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
+    return QPixmap.fromImage(qt_image)
+
+def live_view(label):
     with Camera() as camera:
-        camera.record( # Start recording images
-            number_of_images=10,
-            mode='ring buffer'
-        )
+        camera.record(number_of_images=10, mode='ring buffer')
 
         while True:
-            camera.wait_for_new_image()  # required for live view
-            image, meta = camera.image() # capture image
+            camera.wait_for_new_image()
+            image, meta = camera.image()
 
-            cv2.imshow("Captured Image", image) # use cv2 module to display the image
-            if cv2.waitKey(1) & 0xFF == ord('q'): # press 'q' to exit
+            pixmap = cv_to_qt(image)
+            label.setPixmap(pixmap)  # update QLabel in GUI
+            QApplication.processEvents()  # refresh GUI
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 camera.stop()
                 break
 
-    cv2.destroyAllWindows()
 
 # Single exposure image capture function
 def capture_image(exposure_time, num_images, average, file_path):
