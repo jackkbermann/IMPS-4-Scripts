@@ -1,4 +1,6 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QImage, QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import Qt
 from pco import Camera
 from constants import EXPOSURE_TIMES
 import numpy as np 
@@ -6,6 +8,7 @@ import cv2
 import glob
 import os
 import time
+from camera_gui import *
 from PIL import Image
 
 
@@ -19,6 +22,7 @@ def cv_to_qt(image):
 def live_view(label):
     with Camera() as camera:
         camera.record(number_of_images=10, mode='ring buffer')
+        
 
         while True:
             camera.wait_for_new_image()
