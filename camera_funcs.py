@@ -19,12 +19,12 @@ def cv_to_qt(image):
     qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
     return QPixmap.fromImage(qt_image)
 
-def live_view(label):
+def live_view(label, stop_event):
     with Camera() as camera:
         camera.record(number_of_images=10, mode='ring buffer')
         
 
-        while True:
+        while not stop_event.is_set():
             camera.wait_for_new_image()
             image, meta = camera.image()
 
@@ -32,9 +32,7 @@ def live_view(label):
             label.setPixmap(pixmap)  # update QLabel in GUI
             QApplication.processEvents()  # refresh GUI
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                camera.stop()
-                break
+        camera.stop()
 
 
 # Single exposure image capture function

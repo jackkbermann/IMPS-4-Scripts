@@ -8,7 +8,7 @@ class CameraTabsWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Camera Tabs")
-        self.resize(800, 600)
+        self.resize(1000, 800)
 
         # Whole window background
         self.setStyleSheet("background-color: #2e2e2e;")
@@ -40,7 +40,7 @@ class CameraTabsWidget(QWidget):
         live_view_layout = QVBoxLayout(live_view_tab)
 
         self.live_view_label = QLabel("Live View Feed")
-        self.live_view_label.setMinimumSize(400, 300)
+        self.live_view_label.setMinimumSize(800, 600)
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
         self.live_view_label.setStyleSheet("background-color: black; color: white;")
@@ -53,8 +53,8 @@ class CameraTabsWidget(QWidget):
         live_exposure_layout = QHBoxLayout()
         live_exposure_label = QLabel("Exposure Time:")
         self.live_exposure_line_edit = QLineEdit()
-        self.live_exposure_line_edit.setPlaceholderText("Enter exposure time (ms)")
-        self.live_exposure_line_edit.setMaximumWidth(150)
+        self.live_exposure_line_edit.setPlaceholderText("Exposure time (ms)")
+        self.live_exposure_line_edit.setMaximumWidth(300)
 
         live_exposure_layout.addWidget(live_exposure_label)
         live_exposure_layout.addWidget(self.live_exposure_line_edit)
@@ -78,7 +78,7 @@ class CameraTabsWidget(QWidget):
         capture_layout = QVBoxLayout(capture_tab)
 
         self.capture_label = QLabel("Capture Feed")
-        self.capture_label.setMinimumSize(400, 300)
+        self.capture_label.setMinimumSize(800, 600)
         self.capture_label.setFrameShape(QLabel.Box)
         self.capture_label.setAlignment(Qt.AlignCenter)
         self.capture_label.setStyleSheet("background-color: black; color: white;")
@@ -90,12 +90,24 @@ class CameraTabsWidget(QWidget):
         exposure_layout = QHBoxLayout()
         exposure_label = QLabel("Exposure Time:")
         self.exposure_line_edit = QLineEdit()
-        self.exposure_line_edit.setPlaceholderText("Enter exposure time (ms)")
-        self.exposure_line_edit.setMaximumWidth(150)
+        self.exposure_line_edit.setPlaceholderText("Exposure time (ms)")
+        self.exposure_line_edit.setMaximumWidth(300)
 
         exposure_layout.addWidget(exposure_label)
         exposure_layout.addWidget(self.exposure_line_edit)
         exposure_layout.addStretch()
+
+        # Frame layout
+        frame_layout = QHBoxLayout()
+        frame_label = QLabel("# of Frames:")
+        self.frame_line_edit = QLineEdit()
+        self.frame_line_edit.setPlaceholderText("# of Frames")
+        self.frame_line_edit.setMaximumWidth(300)
+
+        frame_layout.addWidget(frame_label)
+        frame_layout.addWidget(self.frame_line_edit)
+        frame_layout.addStretch()
+
 
         # Capture button centered
         button_layout = QHBoxLayout()
@@ -107,6 +119,7 @@ class CameraTabsWidget(QWidget):
         # Add to main layout
         capture_layout.addLayout(exposure_layout)
         capture_layout.addLayout(button_layout)
+        capture_layout.addLayout(frame_layout)
 
         tabs.addTab(capture_tab, "Capture")
 
