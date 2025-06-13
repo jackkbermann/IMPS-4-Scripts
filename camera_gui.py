@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox,
+    QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QCheckBox,
     QLabel, QLineEdit
 )
 from PyQt5.QtCore import Qt
@@ -87,27 +87,42 @@ class CameraTabsWidget(QWidget):
         capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
         capture_layout.addStretch()
 
+        # --- Input controls layout ---
+        inputs_layout = QVBoxLayout()
+
+        # Exposure time (inline)
         exposure_layout = QHBoxLayout()
         exposure_label = QLabel("Exposure Time:")
         self.exposure_line_edit = QLineEdit()
         self.exposure_line_edit.setPlaceholderText("Exposure time (ms)")
-        self.exposure_line_edit.setMaximumWidth(300)
-
+        self.exposure_line_edit.setMaximumWidth(200)
         exposure_layout.addWidget(exposure_label)
         exposure_layout.addWidget(self.exposure_line_edit)
         exposure_layout.addStretch()
+        inputs_layout.addLayout(exposure_layout)
 
-        # Frame layout
+        # Frame count (inline)
         frame_layout = QHBoxLayout()
         frame_label = QLabel("# of Frames:")
         self.frame_line_edit = QLineEdit()
         self.frame_line_edit.setPlaceholderText("# of Frames")
-        self.frame_line_edit.setMaximumWidth(300)
-
+        self.frame_line_edit.setMaximumWidth(200)
         frame_layout.addWidget(frame_label)
         frame_layout.addWidget(self.frame_line_edit)
         frame_layout.addStretch()
+        inputs_layout.addLayout(frame_layout)
 
+        # Average checkbox (label left, box right)
+        average_layout = QHBoxLayout()
+        average_label = QLabel("Average Images:")
+        self.average_checkbox = QCheckBox()
+        average_layout.addWidget(average_label)
+        average_layout.addWidget(self.average_checkbox)
+        average_layout.addStretch()
+        inputs_layout.addLayout(average_layout)
+
+        # Add all input layouts to capture layout
+        capture_layout.addLayout(inputs_layout)
 
         # Capture button centered
         button_layout = QHBoxLayout()
@@ -115,13 +130,11 @@ class CameraTabsWidget(QWidget):
         self.start_capture_button = QPushButton("Start Capture")
         button_layout.addWidget(self.start_capture_button)
         button_layout.addStretch()
-
-        # Add to main layout
-        capture_layout.addLayout(exposure_layout)
         capture_layout.addLayout(button_layout)
-        capture_layout.addLayout(frame_layout)
 
         tabs.addTab(capture_tab, "Capture")
+
+
 
         # --------- Apply button styles ----------
         button_style = """
@@ -174,6 +187,19 @@ class CameraTabsWidget(QWidget):
                 "Please enter a valid integer for live view exposure time."
             )
             return None
+    def get_num_frames(self):
+        try:
+            return int(self.frame_line_edit.text())
+        except ValueError:
+            QMessageBox.critical(
+                self,
+                "Invalid Input",
+                "Please enter a valid integer for number of frames."
+            )
+            return None
+
+    def get_average_bool(self):
+        return self.average_checkbox.isChecked()
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
