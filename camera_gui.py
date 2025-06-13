@@ -167,8 +167,9 @@ class CameraTabsWidget(QWidget):
         self.start_capture_button.setFont(font)
 
     def get_exposure_time(self):
+        # 5 seconds is upper limit
         try:
-            return int(self.exposure_line_edit.text())
+            return float(self.exposure_line_edit.text())
         except ValueError:
             QMessageBox.critical(
                 self,
@@ -178,8 +179,9 @@ class CameraTabsWidget(QWidget):
             return None
     
     def get_live_exposure_time(self):
+        # 5 seconds is upper limit
         try:
-            return int(self.live_exposure_line_edit.text())
+            return float(self.live_exposure_line_edit.text())
         except ValueError:
             QMessageBox.critical(
                 self,

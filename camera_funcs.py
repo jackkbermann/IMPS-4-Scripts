@@ -16,7 +16,9 @@ def cv_to_qt(image):
 
 def live_view(label, stop_event, exposure_time):
     with Camera() as camera:
-        camera.record(number_of_images=10, mode='ring buffer')
+        camera.exposure_time = exposure_time
+        print(camera.exposure_time)
+        camera.record(number_of_images=100, mode='ring buffer')
 
         while not stop_event.is_set():
             camera.wait_for_new_image()
