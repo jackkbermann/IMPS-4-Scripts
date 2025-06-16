@@ -1,8 +1,75 @@
 from PyQt5.QtWidgets import (
     QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QCheckBox,
-    QLabel, QLineEdit
+    QLabel, QLineEdit, QApplication
 )
 from PyQt5.QtCore import Qt
+import sys
+
+class WelcomeScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #001f3f;
+                color: white;
+            }
+            QLabel {
+                font-size: 28px;
+            }
+            QLineEdit {
+                padding: 8px;
+                font-size: 16px;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+                background-color: #003366;
+                color: white;
+            }
+
+            QPushButton {
+                color: white;
+                background-color: #001f3f;
+                border: 2px solid white;
+                border-radius: 8px;
+                padding: 8px 12px;
+            }
+            QPushButton:hover {
+                background-color: #003366;
+            }
+            QPushButton:pressed {
+                background-color: #000d1a;
+            }
+        """)
+
+        
+
+        # Main layout centered
+        layout = QVBoxLayout(self)
+        layout.setSpacing(20)
+        layout.setContentsMargins(100, 100, 100, 100)
+        layout.setAlignment(Qt.AlignCenter)
+
+        self.title = QLabel("Welcome to the IMPS4 Camera Control!")
+        self.title.setAlignment(Qt.AlignCenter)
+
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Enter your name")
+        self.name_input.setMaximumWidth(300)
+        self.name_input.setAlignment(Qt.AlignCenter)
+
+        self.continue_button = QPushButton("Continue")
+
+        layout.addStretch()
+        layout.addWidget(self.title, alignment=Qt.AlignCenter)
+        layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
+        layout.addWidget(self.continue_button, alignment=Qt.AlignCenter)
+        layout.addStretch()
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            QApplication.quit() 
+            sys.exit(0)
+
 
 class CameraTabsWidget(QWidget):
     def __init__(self):
@@ -167,7 +234,6 @@ class CameraTabsWidget(QWidget):
         self.start_capture_button.setFont(font)
 
     def get_exposure_time(self):
-        # 5 seconds is upper limit
         try:
             return float(self.exposure_line_edit.text())
         except ValueError:
@@ -179,7 +245,6 @@ class CameraTabsWidget(QWidget):
             return None
     
     def get_live_exposure_time(self):
-        # 5 seconds is upper limit
         try:
             return float(self.live_exposure_line_edit.text())
         except ValueError:
@@ -205,4 +270,5 @@ class CameraTabsWidget(QWidget):
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            self.close()
+            QApplication.quit()  # closes everything and stops the event loop
+            sys.exit(0)
