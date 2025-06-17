@@ -10,7 +10,22 @@ import threading
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("background-color: #001f3f;")
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #001f3f;
+            }
+            QLineEdit {
+                background-color: #003366;
+                color: white;
+                padding: 8px;
+                font-size: 16px;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+            }
+            QLineEdit:placeholder {
+                color: #bbbbbb;
+            }
+        """)
         self.setWindowTitle("IMPS4 Camera Control")
         self.resize(1000, 800)
 
@@ -35,7 +50,12 @@ class MainWindow(QMainWindow):
     def go_to_camera_ui(self):
         name = self.welcome_screen.name_input.text().strip()
         if not name:
-            QMessageBox.critical(self, "Invalid Input", "Please enter a valid name.")
+            box = QMessageBox(self)
+            box.setIcon(QMessageBox.Critical)
+            box.setWindowTitle("Invalid Input")
+            box.setText("Please enter a valid name.")
+            box.setStyleSheet("QMessageBox { background-color: white; } QLabel { color: black; } QPushButton { background-color: #ccc; }")
+            box.exec_()
             return
 
         self.stack.setCurrentWidget(self.camera_ui)
@@ -51,6 +71,10 @@ class MainWindow(QMainWindow):
         self.camera_ui.start_capture_button.clicked.connect(self.start_capture)
 
     def start_live_view(self):
+        if not is_camera_connected():
+            QMessageBox.critical(self, "Camera Error", "No camera detected. Please check connection.")
+            return
+
         self.stop_event.clear()
         exposure_time = self.camera_ui.get_live_exposure_time()
         if exposure_time is None:
@@ -72,7 +96,7 @@ class MainWindow(QMainWindow):
             return
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(exposure_time, num_frames, average, "./output"),
+            args=(self.camera_ui.capture_label, exposure_time, num_frames, average, "./output"),
             daemon=True)
         self.capture_thread.start()
 

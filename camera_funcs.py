@@ -8,6 +8,13 @@ import os
 import time
 from PIL import Image
 
+def is_camera_connected():
+    try:
+        with Camera() as cam:
+            return True
+    except Exception:
+        return False
+
 def cv_to_qt(image):
     image_8bit = cv2.convertScaleAbs(image, alpha=(255.0/65535.0))
     h, w = image_8bit.shape
@@ -29,7 +36,7 @@ def live_view(label, stop_event, exposure_time):
 
         camera.stop()
 
-def capture_image(exposure_time, num_images, average, file_path):
+def capture_image(label, exposure_time, num_images, average, file_path):
     images = []
     if not os.path.exists(file_path):
         os.mkdir(file_path)
@@ -55,6 +62,9 @@ def capture_image(exposure_time, num_images, average, file_path):
                 custom_name = f"my_custom_name_{i+1:03d}.tif"
                 Image.fromarray(image).save(os.path.join(file_path, custom_name))
 
-    cv2.imshow("Captured Image", images[-1])
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    pixmap = cv_to_qt(images[-1])
+    label.setPixmap(pixmap)
+    QApplication.processEvents()
+
+
+

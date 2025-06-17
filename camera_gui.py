@@ -25,6 +25,9 @@ class WelcomeScreen(QWidget):
                 background-color: #003366;
                 color: white;
             }
+            QLineEdit:placeholder {
+                color: #bbbbbb;
+            }
 
             QPushButton {
                 color: white;
@@ -37,7 +40,7 @@ class WelcomeScreen(QWidget):
                 background-color: #003366;
             }
             QPushButton:pressed {
-                background-color: #000d1a;
+                background-color: #004080;
             }
         """)
 
@@ -53,6 +56,7 @@ class WelcomeScreen(QWidget):
         self.title.setAlignment(Qt.AlignCenter)
 
         self.name_input = QLineEdit()
+        self.name_input.setFocusPolicy(Qt.ClickFocus)
         self.name_input.setPlaceholderText("Enter your name")
         self.name_input.setMaximumWidth(300)
         self.name_input.setAlignment(Qt.AlignCenter)
@@ -107,7 +111,7 @@ class CameraTabsWidget(QWidget):
         live_view_layout = QVBoxLayout(live_view_tab)
 
         self.live_view_label = QLabel("Live View Feed")
-        self.live_view_label.setMinimumSize(800, 600)
+        self.live_view_label.setMinimumSize(600, 400)
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
         self.live_view_label.setStyleSheet("background-color: black; color: white;")
@@ -145,7 +149,7 @@ class CameraTabsWidget(QWidget):
         capture_layout = QVBoxLayout(capture_tab)
 
         self.capture_label = QLabel("Capture Feed")
-        self.capture_label.setMinimumSize(800, 600)
+        self.capture_label.setMinimumSize(600, 400)
         self.capture_label.setFrameShape(QLabel.Box)
         self.capture_label.setAlignment(Qt.AlignCenter)
         self.capture_label.setStyleSheet("background-color: black; color: white;")
@@ -216,7 +220,7 @@ class CameraTabsWidget(QWidget):
                 background-color: #003366;
             }
             QPushButton:pressed {
-                background-color: #000d1a;
+                background-color: #004080;
             }
         """
 
