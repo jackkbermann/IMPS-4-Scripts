@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QLabel
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from pco import Camera
 import numpy as np
 import cv2
@@ -20,6 +20,30 @@ def cv_to_qt(image):
     h, w = image_8bit.shape
     qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
     return QPixmap.fromImage(qt_image)
+
+class LiveViewWorker(QObject):
+    new_pixmap = pyqtSignal(QPixmap)
+    finished = pyqtSignal()
+
+    def __init__(self, stop_event, exposure_time):
+        super().__init__()
+        self.stop_event = stop_event
+        self.exposure_time = exposure_time
+
+    def run(self):
+        with Camera() as camera:
+            camera.exposure_time = self.exposure_time * 1e-6
+            camera.record(number_of_images=100, mode='ring buffer')
+
+            while not self.stop_event.is_set():
+                camera.wait_for_new_image()
+                image, _ = camera.image()
+                pixmap = cv_to_qt(image)
+                self.new_pixmap.emit(pixmap)
+                time.sleep(0.01)  # avoid overloading the event loop
+
+            camera.stop()
+            self.finished.emit()
 
 def live_view(label, stop_event, exposure_time):
     with Camera() as camera:

@@ -2,7 +2,7 @@ from camera_gui import *
 from camera_funcs import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread
 import sys
 import threading
 
@@ -10,22 +10,7 @@ import threading
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #001f3f;
-            }
-            QLineEdit {
-                background-color: #003366;
-                color: white;
-                padding: 8px;
-                font-size: 16px;
-                border-radius: 6px;
-                border: 1px solid #ccc;
-            }
-            QLineEdit:placeholder {
-                color: #bbbbbb;
-            }
-        """)
+        self.setStyleSheet("background-color: #001f3f;")
         self.setWindowTitle("IMPS4 Camera Control")
         self.resize(1000, 800)
 
@@ -50,12 +35,7 @@ class MainWindow(QMainWindow):
     def go_to_camera_ui(self):
         name = self.welcome_screen.name_input.text().strip()
         if not name:
-            box = QMessageBox(self)
-            box.setIcon(QMessageBox.Critical)
-            box.setWindowTitle("Invalid Input")
-            box.setText("Please enter a valid name.")
-            box.setStyleSheet("QMessageBox { background-color: white; } QLabel { color: black; } QPushButton { background-color: #ccc; }")
-            box.exec_()
+            QMessageBox.critical(self, "Invalid Input", "Please enter a valid name.")
             return
 
         self.stack.setCurrentWidget(self.camera_ui)
@@ -71,33 +51,38 @@ class MainWindow(QMainWindow):
         self.camera_ui.start_capture_button.clicked.connect(self.start_capture)
 
     def start_live_view(self):
-        if not is_camera_connected():
-            QMessageBox.critical(self, "Camera Error", "No camera detected. Please check connection.")
-            return
-
         self.stop_event.clear()
         exposure_time = self.camera_ui.get_live_exposure_time()
         if exposure_time is None:
             return
-        self.live_view_thread = threading.Thread(
-            target=live_view,
-            args=(self.camera_ui.live_view_label, self.stop_event, exposure_time),
-            daemon=True)
-        self.live_view_thread.start()
+
+        self.live_thread = QThread()
+        self.live_worker = LiveViewWorker(self.stop_event, exposure_time)
+        self.live_worker.moveToThread(self.live_thread)
+
+        self.live_worker.new_pixmap.connect(self.camera_ui.live_view_label.setPixmap)
+        self.live_worker.finished.connect(self.live_thread.quit)
+        self.live_worker.finished.connect(self.live_worker.deleteLater)
+        self.live_thread.finished.connect(self.live_thread.deleteLater)
+
+        self.live_thread.started.connect(self.live_worker.run)
+        self.live_thread.start()
     
     def stop_live_view(self):
         self.stop_event.set()
+        if self.live_thread and self.live_thread.isRunning():
+            self.live_thread.quit()
+            self.live_thread.wait()
 
     def start_capture(self):
         exposure_time = self.camera_ui.get_exposure_time()
         num_frames = self.camera_ui.get_num_frames()
         average = self.camera_ui.get_average_bool()
-        print(exposure_time, num_frames, average)
         if exposure_time is None or num_frames is None:
             return
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.capture_label, exposure_time, num_frames, average, "./output"),
+            args=(exposure_time, num_frames, average, "./output"),
             daemon=True)
         self.capture_thread.start()
 
