@@ -92,6 +92,7 @@ class MainWindow(QMainWindow):
         exposure_time = self.camera_ui.get_exposure_time()
         num_frames = self.camera_ui.get_num_frames()
         average = self.camera_ui.get_average_bool()
+        print(exposure_time, num_frames, average)
         if exposure_time is None or num_frames is None:
             return
         self.capture_thread = threading.Thread(

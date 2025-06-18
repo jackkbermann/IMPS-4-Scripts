@@ -23,8 +23,7 @@ def cv_to_qt(image):
 
 def live_view(label, stop_event, exposure_time):
     with Camera() as camera:
-        camera.exposure_time = exposure_time * 10e-3
-        print(camera.exposure_time)
+        camera.exposure_time = exposure_time * 1e-6
         camera.record(number_of_images=100, mode='ring buffer')
 
         while not stop_event.is_set():
@@ -42,7 +41,9 @@ def capture_image(label, exposure_time, num_images, average, file_path):
         os.mkdir(file_path)
 
     with Camera() as camera:
-        camera.exposure_time = exposure_time * 10e-3
+        camera.exposure_time = exposure_time * 1e-3
+        print(camera.exposure_time)
+        # The number of images needs to be >=4
         camera.record(number_of_images=num_images, mode='ring buffer')
 
         while camera.recorded_image_count != num_images:
