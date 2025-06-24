@@ -18,19 +18,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.stack)
 
         self.welcome_screen = WelcomeScreen()
-        self.camera_ui = CameraTabsWidget()
-
         self.stack.addWidget(self.welcome_screen)
-        self.stack.addWidget(self.camera_ui)
 
         self.stop_event = threading.Event()
         self.live_view_thread = None  
         self.capture_thread = None    
 
-        self.welcome_screen.continue_button.clicked.connect(self.go_to_camera_ui)
-
-        # Setup after transition
         self.setup_done = False
+
+        # Connect the continue button to transition
+        self.welcome_screen.continue_button.clicked.connect(self.go_to_camera_ui)
 
     def go_to_camera_ui(self):
         name = self.welcome_screen.name_input.text().strip()
@@ -38,6 +35,8 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Invalid Input", "Please enter a valid name.")
             return
 
+        self.camera_ui = CameraTabsWidget(username=name)
+        self.stack.addWidget(self.camera_ui)
         self.stack.setCurrentWidget(self.camera_ui)
 
         if not self.setup_done:
@@ -53,11 +52,19 @@ class MainWindow(QMainWindow):
     def start_live_view(self):
         self.stop_event.clear()
         exposure_time = self.camera_ui.get_live_exposure_time()
+        exposure_time_unit = self.camera_ui.get_live_exposure_time_unit()
         if exposure_time is None:
+            return
+        if is_camera_connected() is False:
+            QMessageBox.critical(
+                self,
+                "Camera Not Connected",
+                "Please connect the camera before starting live view."
+            )
             return
 
         self.live_thread = QThread()
-        self.live_worker = LiveViewWorker(self.stop_event, exposure_time)
+        self.live_worker = LiveViewWorker(self.stop_event, exposure_time, exposure_time_unit)
         self.live_worker.moveToThread(self.live_thread)
 
         self.live_worker.new_pixmap.connect(self.camera_ui.live_view_label.setPixmap)
@@ -76,13 +83,29 @@ class MainWindow(QMainWindow):
 
     def start_capture(self):
         exposure_time = self.camera_ui.get_exposure_time()
-        num_frames = self.camera_ui.get_num_frames()
-        average = self.camera_ui.get_average_bool()
-        if exposure_time is None or num_frames is None:
+        total_frames = self.camera_ui.get_total_frames()
+        average_frames = self.camera_ui.get_average_frames()
+        exposure_time_unit = self.camera_ui.get_exposure_time_unit()
+
+        if exposure_time is None or total_frames is None or average_frames is None:
+            return
+        if (total_frames % average_frames) != 0:
+            QMessageBox.critical(
+                self,
+                "Invalid Input",
+                "Total frames must be a multiple of average frames."
+            )
+            return
+        if is_camera_connected() is False:
+            QMessageBox.critical(
+                self,
+                "Camera Not Connected",
+                "Please connect the camera before starting live view."
+            )
             return
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(exposure_time, num_frames, average, "./output"),
+            args=(self.camera_ui.live_view_label, exposure_time, total_frames, average_frames, exposure_time_unit, "./output"),
             daemon=True)
         self.capture_thread.start()
 

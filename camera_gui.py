@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
-    QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QCheckBox,
-    QLabel, QLineEdit, QApplication
+    QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QCheckBox, QComboBox,
+    QLabel, QLineEdit, QApplication, QSizePolicy, QSpacerItem
 )
 from PyQt5.QtCore import Qt
 import sys
@@ -76,34 +76,48 @@ class WelcomeScreen(QWidget):
 
 
 class CameraTabsWidget(QWidget):
-    def __init__(self):
+    def __init__(self, username):
         super().__init__()
         self.setWindowTitle("Camera Tabs")
         self.resize(1000, 800)
 
-        # Whole window background
         self.setStyleSheet("background-color: #2e2e2e;")
 
+        # Username label floating (not in layout)
+        self.username_label = QLabel(username, self)
+        self.username_label.setStyleSheet("""
+            color: white;
+            background-color: #001f3f;
+            font-size: 20px;
+        """)
+        self.username_label.adjustSize()
+
+        # Main layout for tabs
         main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-        tabs = QTabWidget()
-        main_layout.addWidget(tabs)
+        self.tabs = QTabWidget()
+        self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Style the tab bar
-        tabs.setStyleSheet("""
+        main_layout.addWidget(self.tabs)
+
+        self.tabs.setStyleSheet("""
             QTabWidget::pane {
-                border: 1px solid #444444;
+                border: 1px solid white;
                 background: #001f3f;
             }
             QTabBar::tab {
-                background: #333333;
-                color: white;
-                padding: 10px;
+                background: white;
+                color: #001f3f;
+                border: 1px solid black;
+                padding: 7px;
             }
             QTabBar::tab:selected {
                 background: #555555;
             }
         """)
+
 
         # --------- Live View Tab ----------
         live_view_tab = QWidget()
@@ -120,17 +134,41 @@ class CameraTabsWidget(QWidget):
         live_view_layout.addWidget(self.live_view_label, alignment=Qt.AlignCenter)
         live_view_layout.addStretch()
 
-        # --- Exposure input for Live View ---
+        # --- Exposure info and input for Live View ---
+        # --- Exposure section for Live View (left-aligned, like Capture) ---
+
+        # Exposure info label above input
+        live_exposure_info = QLabel("Max: 1000 ms | Min: 10 µs")
+        live_exposure_info.setStyleSheet("color: white;")
+        live_view_layout.addWidget(live_exposure_info, alignment=Qt.AlignLeft)
+
+        # Exposure input row
         live_exposure_layout = QHBoxLayout()
         live_exposure_label = QLabel("Exposure Time:")
         self.live_exposure_line_edit = QLineEdit()
-        self.live_exposure_line_edit.setPlaceholderText("Exposure time (ms)")
-        self.live_exposure_line_edit.setMaximumWidth(300)
+        self.live_exposure_line_edit.setPlaceholderText("Exposure time")
+        self.live_exposure_line_edit.setMaximumWidth(200)
+
+        self.live_exposure_unit_dropdown = QComboBox()
+        self.live_exposure_unit_dropdown.addItems(["ms", "µs"])
+        self.live_exposure_unit_dropdown.setMaximumWidth(60)
+        self.live_exposure_unit_dropdown.setStyleSheet("""
+            QComboBox {
+                border: 1px solid white;
+                padding: 4px;
+                background-color: #003366;
+                color: white;
+            }
+        """)
 
         live_exposure_layout.addWidget(live_exposure_label)
         live_exposure_layout.addWidget(self.live_exposure_line_edit)
+        live_exposure_layout.addWidget(self.live_exposure_unit_dropdown)
         live_exposure_layout.addStretch()
+
         live_view_layout.addLayout(live_exposure_layout)
+
+
 
         # --- Buttons for Live View ---
         live_view_buttons_layout = QHBoxLayout()
@@ -141,7 +179,7 @@ class CameraTabsWidget(QWidget):
         live_view_layout.addLayout(live_view_buttons_layout)
 
 
-        tabs.addTab(live_view_tab, "Live View")
+        self.tabs.addTab(live_view_tab, "Live View")
 
         # --------- Capture Tab ----------
         capture_tab = QWidget()
@@ -161,14 +199,32 @@ class CameraTabsWidget(QWidget):
         # --- Input controls layout ---
         inputs_layout = QVBoxLayout()
 
-        # Exposure time (inline)
+        # Exposure info for Capture
+        capture_exposure_info = QLabel("Max: 1000 ms | Min: 10 µs")
+        inputs_layout.addWidget(capture_exposure_info, alignment=Qt.AlignLeft)
+
+        # Exposure time (inline with dropdown)
         exposure_layout = QHBoxLayout()
         exposure_label = QLabel("Exposure Time:")
         self.exposure_line_edit = QLineEdit()
-        self.exposure_line_edit.setPlaceholderText("Exposure time (ms)")
+        self.exposure_line_edit.setPlaceholderText("Exposure time")
         self.exposure_line_edit.setMaximumWidth(200)
+
+        self.exposure_unit_dropdown = QComboBox()
+        self.exposure_unit_dropdown.addItems(["ms", "µs"])
+        self.exposure_unit_dropdown.setMaximumWidth(60)
+        self.exposure_unit_dropdown.setStyleSheet("""
+            QComboBox {
+                border: 1px solid white;
+                padding: 4px;
+                background-color: #001f3f;
+                color: white;
+            }
+        """)
+
         exposure_layout.addWidget(exposure_label)
         exposure_layout.addWidget(self.exposure_line_edit)
+        exposure_layout.addWidget(self.exposure_unit_dropdown)
         exposure_layout.addStretch()
         inputs_layout.addLayout(exposure_layout)
 
@@ -185,10 +241,13 @@ class CameraTabsWidget(QWidget):
 
         # Average checkbox (label left, box right)
         average_layout = QHBoxLayout()
-        average_label = QLabel("Average Images:")
+        average_label = QLabel("# of Averaged Frames:")
+        self.average_line_edit = QLineEdit()
+        self.average_line_edit.setPlaceholderText("# of Averaged Frames")
+        self.average_line_edit.setMaximumWidth(200)
         self.average_checkbox = QCheckBox()
         average_layout.addWidget(average_label)
-        average_layout.addWidget(self.average_checkbox)
+        average_layout.addWidget(self.average_line_edit)
         average_layout.addStretch()
         inputs_layout.addLayout(average_layout)
 
@@ -203,7 +262,7 @@ class CameraTabsWidget(QWidget):
         button_layout.addStretch()
         capture_layout.addLayout(button_layout)
 
-        tabs.addTab(capture_tab, "Capture")
+        self.tabs.addTab(capture_tab, "Capture")
 
 
 
@@ -258,19 +317,29 @@ class CameraTabsWidget(QWidget):
                 "Please enter a valid integer for live view exposure time."
             )
             return None
-    def get_num_frames(self):
+    def get_total_frames(self):
         try:
             return int(self.frame_line_edit.text())
         except ValueError:
             QMessageBox.critical(
                 self,
                 "Invalid Input",
-                "Please enter a valid integer for number of frames."
+                "Please enter a valid integer for number of totalframes."
             )
             return None
 
-    def get_average_bool(self):
-        return self.average_checkbox.isChecked()
+    def get_average_frames(self):
+        try:
+            return int(self.frame_line_edit.text())
+        except ValueError:
+            QMessageBox.critical(
+                self,
+                "Invalid Input",
+                "Please enter a valid integer for number of totalframes."
+            )
+            return None
+    def get_exposure_unit(self):
+        return self.exposure_unit_dropdown.currentText()
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
