@@ -5,6 +5,11 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QThread
 import sys
 import threading
+from datetime import date
+
+
+def get_current_date():
+    return date.today()
 
 
 class MainWindow(QMainWindow):
@@ -49,6 +54,7 @@ class MainWindow(QMainWindow):
         self.camera_ui.start_live_view_button.clicked.connect(self.start_live_view)
         self.camera_ui.start_capture_button.clicked.connect(self.start_capture)
 
+
     def start_live_view(self):
         self.stop_event.clear()
         exposure_time = self.camera_ui.get_live_exposure_time()
@@ -82,11 +88,11 @@ class MainWindow(QMainWindow):
             self.live_thread.wait()
 
     def start_capture(self):
-        exposure_time = self.camera_ui.get_exposure_time()
+        exposure_time_unit = self.camera_ui.get_exposure_unit()
+        exposure_time = self.camera_ui.get_exposure_time(exposure_time_unit)
         total_frames = self.camera_ui.get_total_frames()
         average_frames = self.camera_ui.get_average_frames()
-        exposure_time_unit = self.camera_ui.get_exposure_time_unit()
-
+        print(total_frames, average_frames)
         if exposure_time is None or total_frames is None or average_frames is None:
             return
         if (total_frames % average_frames) != 0:
@@ -103,9 +109,12 @@ class MainWindow(QMainWindow):
                 "Please connect the camera before starting live view."
             )
             return
+        date = get_current_date()
+        if not os.path.exists(f"./{date}"):
+            os.mkdir(f"./{date}")
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.live_view_label, exposure_time, total_frames, average_frames, exposure_time_unit, "./output"),
+            args=(self.camera_ui.live_view_label, exposure_time, total_frames, average_frames, exposure_time_unit, f"./{date}"),
             daemon=True)
         self.capture_thread.start()
 

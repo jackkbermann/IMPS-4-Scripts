@@ -138,7 +138,7 @@ class CameraTabsWidget(QWidget):
         # --- Exposure section for Live View (left-aligned, like Capture) ---
 
         # Exposure info label above input
-        live_exposure_info = QLabel("Max: 1000 ms | Min: 10 µs")
+        live_exposure_info = QLabel("Max: 5 s | Min: 21 µs")
         live_exposure_info.setStyleSheet("color: white;")
         live_view_layout.addWidget(live_exposure_info, alignment=Qt.AlignLeft)
 
@@ -150,7 +150,7 @@ class CameraTabsWidget(QWidget):
         self.live_exposure_line_edit.setMaximumWidth(200)
 
         self.live_exposure_unit_dropdown = QComboBox()
-        self.live_exposure_unit_dropdown.addItems(["ms", "µs"])
+        self.live_exposure_unit_dropdown.addItems(["s", "ms", "µs"])
         self.live_exposure_unit_dropdown.setMaximumWidth(60)
         self.live_exposure_unit_dropdown.setStyleSheet("""
             QComboBox {
@@ -200,7 +200,7 @@ class CameraTabsWidget(QWidget):
         inputs_layout = QVBoxLayout()
 
         # Exposure info for Capture
-        capture_exposure_info = QLabel("Max: 1000 ms | Min: 10 µs")
+        capture_exposure_info = QLabel("Max: 5 s | Min: 21 µs")
         inputs_layout.addWidget(capture_exposure_info, alignment=Qt.AlignLeft)
 
         # Exposure time (inline with dropdown)
@@ -211,7 +211,7 @@ class CameraTabsWidget(QWidget):
         self.exposure_line_edit.setMaximumWidth(200)
 
         self.exposure_unit_dropdown = QComboBox()
-        self.exposure_unit_dropdown.addItems(["ms", "µs"])
+        self.exposure_unit_dropdown.addItems(["s", "ms", "µs"])
         self.exposure_unit_dropdown.setMaximumWidth(60)
         self.exposure_unit_dropdown.setStyleSheet("""
             QComboBox {
@@ -228,7 +228,7 @@ class CameraTabsWidget(QWidget):
         exposure_layout.addStretch()
         inputs_layout.addLayout(exposure_layout)
 
-        # Frame count (inline)
+        # Total frame count
         frame_layout = QHBoxLayout()
         frame_label = QLabel("# of Frames:")
         self.frame_line_edit = QLineEdit()
@@ -239,7 +239,7 @@ class CameraTabsWidget(QWidget):
         frame_layout.addStretch()
         inputs_layout.addLayout(frame_layout)
 
-        # Average checkbox (label left, box right)
+        # Average fram count
         average_layout = QHBoxLayout()
         average_label = QLabel("# of Averaged Frames:")
         self.average_line_edit = QLineEdit()
@@ -296,20 +296,62 @@ class CameraTabsWidget(QWidget):
         font.setPointSize(13)
         self.start_capture_button.setFont(font)
 
-    def get_exposure_time(self):
+    def get_exposure_time(self, exposure_time_unit):
         try:
-            return float(self.exposure_line_edit.text())
+            if exposure_time_unit == 's':
+                exp_time = float(self.exposure_line_edit.text())
+            elif exposure_time_unit == 'ms':
+                exp_time = float(self.exposure_line_edit.text()) * 1e-3
+            elif exposure_time_unit == 'µs':
+                exp_time = float(self.exposure_line_edit.text()) * 1e-6
+
+            if exp_time < 0:
+                QMessageBox.critical(
+                self,
+                "Invalid Input",
+                "Please enter a non-negative integer exposure time."
+                )
+                return None
+            if exp_time > 5 or exp_time < (21 *1e-6):
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Live view exposure time must be between 21 µs and 5 s."
+                )
+                return None
+        
+            return exp_time
         except ValueError:
             QMessageBox.critical(
                 self,
                 "Invalid Input",
-                "Please enter a valid integer for exposure time."
+                "Please enter a valid integer for live view exposure  cagsdf time."
             )
             return None
     
-    def get_live_exposure_time(self):
+    def get_live_exposure_time(self, exposure_time_unit):
         try:
-            return float(self.live_exposure_line_edit.text())
+            if exposure_time_unit == 's':
+                exp_time = float(self.live_exposure_line_edit.text())
+            elif exposure_time_unit == 'ms':
+                exp_time = float(self.live_exposure_line_edit.text()) * 1e-3
+            elif exposure_time_unit == 'µs':
+                exp_time = float(self.live_exposure_line_edit.text()) * 1e-6
+
+            if exp_time < 0:
+                QMessageBox.critical(
+                self,
+                "Invalid Input",
+                "Please enter a valid integer for live view exposure time."
+                )
+                return None
+            if exp_time > 5 or exp_time < (21 *1e-6):
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Live view exposure time must be between 21 µs and 5 s."
+                )
+                return None
         except ValueError:
             QMessageBox.critical(
                 self,
@@ -317,6 +359,7 @@ class CameraTabsWidget(QWidget):
                 "Please enter a valid integer for live view exposure time."
             )
             return None
+        
     def get_total_frames(self):
         try:
             return int(self.frame_line_edit.text())
@@ -330,7 +373,7 @@ class CameraTabsWidget(QWidget):
 
     def get_average_frames(self):
         try:
-            return int(self.frame_line_edit.text())
+            return int(self.average_line_edit.text())
         except ValueError:
             QMessageBox.critical(
                 self,

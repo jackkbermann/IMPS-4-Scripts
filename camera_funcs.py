@@ -8,6 +8,7 @@ import os
 import time
 from PIL import Image
 
+
 class LiveViewWorker(QObject):
     new_pixmap = pyqtSignal(QPixmap)
     finished = pyqtSignal()
@@ -18,13 +19,14 @@ class LiveViewWorker(QObject):
         self.exposure_time = exposure_time
         self.exposure_time_unit = exposure_time_unit
 
-    def run(self, exposure_time_unit):
+    def run(self, exposure_time_unit, exposure_time):
         with Camera() as camera:
-            if exposure_time_unit == 'ms':
-                camera.exposure_time = self.exposure_time * 1e-3
-            else:
-                camera.exposure_time = self.exposure_time * 1e-6
-
+            if (exposure_time_unit == 'ms'):
+                    camera.exposure_time = exposure_time * 1e-3
+            elif (exposure_time_unit == 'µs'):
+                camera.exposure_time = exposure_time * 1e-6
+            else: 
+                camera.exposure_time = exposure_time
             camera.record(number_of_images=100, mode='ring buffer')
 
             while not self.stop_event.is_set():
@@ -50,6 +52,7 @@ def cv_to_qt(image):
     qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
     return QPixmap.fromImage(qt_image)
 
+
 def capture_image(label, exposure_time, total_frames, average_frames, exposure_time_unit, file_path):
     images = []
     if not os.path.exists(file_path):
@@ -60,10 +63,12 @@ def capture_image(label, exposure_time, total_frames, average_frames, exposure_t
     
     for i in range(average_frames):
         with Camera() as camera:
-            if exposure_time_unit == 'ms':
+            if (exposure_time_unit == 'ms'):
                     camera.exposure_time = exposure_time * 1e-3
-            else:
+            elif (exposure_time_unit == 'µs'):
                 camera.exposure_time = exposure_time * 1e-6
+            else: 
+                camera.exposure_time = exposure_time
 
             camera.record(number_of_images=frame_count, mode='ring buffer')
 
