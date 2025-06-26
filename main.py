@@ -57,8 +57,8 @@ class MainWindow(QMainWindow):
 
     def start_live_view(self):
         self.stop_event.clear()
-        exposure_time = self.camera_ui.get_live_exposure_time()
-        exposure_time_unit = self.camera_ui.get_live_exposure_time_unit()
+        exposure_time_unit = self.camera_ui.get_live_exposure_unit()
+        exposure_time = self.camera_ui.get_live_exposure_time(exposure_time_unit)
         if exposure_time is None:
             return
         if is_camera_connected() is False:
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         self.live_worker.finished.connect(self.live_worker.deleteLater)
         self.live_thread.finished.connect(self.live_thread.deleteLater)
 
-        self.live_thread.started.connect(self.live_worker.run)
+        self.live_thread.started.connect(self.live_worker.run(exposure_time_unit, exposure_time))
         self.live_thread.start()
     
     def stop_live_view(self):
@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
             os.mkdir(f"./{date}")
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.live_view_label, exposure_time, total_frames, average_frames, exposure_time_unit, f"./{date}"),
+            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, exposure_time_unit, f"./{date}"),
             daemon=True)
         self.capture_thread.start()
 

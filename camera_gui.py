@@ -384,6 +384,9 @@ class CameraTabsWidget(QWidget):
     def get_exposure_unit(self):
         return self.exposure_unit_dropdown.currentText()
     
+    def get_live_exposure_unit(self):
+        return self.live_exposure_unit_dropdown.currentText()
+    
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             QApplication.quit()  # closes everything and stops the event loop

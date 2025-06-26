@@ -77,12 +77,13 @@ def capture_image(label, exposure_time, total_frames, average_frames, exposure_t
 
             camera.stop()
 
-        image = camera.image_average()
-        images.append(image)
-        custom_name = f"my_custom_name.tif"
-        Image.fromarray(image).save(os.path.join(file_path, custom_name))
+            image = camera.image_average()
+            images.append(image)
+            custom_name = f"my_custom_name.tif"
+            Image.fromarray(image).save(os.path.join(file_path, custom_name))
 
     pixmap = cv_to_qt(images[-1])
+    print(images[-1].shape)
     label.setPixmap(pixmap)
     QApplication.processEvents()
 
