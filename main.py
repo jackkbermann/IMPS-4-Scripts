@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
             return
 
         self.live_thread = QThread()
-        self.live_worker = LiveViewWorker(self.stop_event, exposure_time, exposure_time_unit)
+        self.live_worker = LiveViewWorker(self.stop_event, exposure_time)
         self.live_worker.moveToThread(self.live_thread)
 
         self.live_worker.new_pixmap.connect(self.camera_ui.live_view_label.setPixmap)
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         self.live_worker.finished.connect(self.live_worker.deleteLater)
         self.live_thread.finished.connect(self.live_thread.deleteLater)
 
-        self.live_thread.started.connect(self.live_worker.run(exposure_time_unit, exposure_time))
+        self.live_thread.started.connect(self.live_worker.run(exposure_time))
         self.live_thread.start()
     
     def stop_live_view(self):

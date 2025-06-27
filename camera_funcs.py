@@ -13,20 +13,14 @@ class LiveViewWorker(QObject):
     new_pixmap = pyqtSignal(QPixmap)
     finished = pyqtSignal()
 
-    def __init__(self, stop_event, exposure_time, exposure_time_unit):
+    def __init__(self, stop_event, exposure_time):
         super().__init__()
         self.stop_event = stop_event
         self.exposure_time = exposure_time
-        self.exposure_time_unit = exposure_time_unit
 
-    def run(self, exposure_time_unit, exposure_time):
+    def run(self, exposure_time):
         with Camera() as camera:
-            if (exposure_time_unit == 'ms'):
-                    camera.exposure_time = exposure_time * 1e-3
-            elif (exposure_time_unit == 'µs'):
-                camera.exposure_time = exposure_time * 1e-6
-            else: 
-                camera.exposure_time = exposure_time
+            camera.exposure_time = exposure_time
             camera.record(number_of_images=100, mode='ring buffer')
 
             while not self.stop_event.is_set():
@@ -73,7 +67,7 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path)
 
             image = camera.image_average()
             images.append(image)
-            custom_name = f"my_custom_name.tif"
+            custom_name = f"my_custom_name{i}.tif"
             Image.fromarray(image).save(os.path.join(file_path, custom_name))
 
     pixmap = cv_to_qt(images[-1])
