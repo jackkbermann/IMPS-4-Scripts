@@ -189,10 +189,12 @@ class CameraTabsWidget(QWidget):
         self.capture_label = QLabel("Capture Feed")
         self.capture_label.setMinimumSize(600, 400)
         self.capture_label.setFrameShape(QLabel.Box)
+        self.capture_label.setScaledContents(True)
         self.capture_label.setAlignment(Qt.AlignCenter)
-        self.capture_label.setStyleSheet("background-color: black; color: white;")
+        self.capture_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
 
         capture_layout.addStretch()
+        capture_layout.setContentsMargins(40, 40, 40, 40)
         capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
         capture_layout.addStretch()
 

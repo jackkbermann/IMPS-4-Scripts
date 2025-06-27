@@ -41,11 +41,16 @@ def is_camera_connected():
         return False
 
 def cv_to_qt(image):
-    image_8bit = cv2.convertScaleAbs(image, alpha=(255.0/65535.0))
-    h, w = image_8bit.shape
-    qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
-    return QPixmap.fromImage(qt_image)
+    if image.dtype != np.uint16:
+        image = image.astype(np.uint16)
 
+    # Normalize using actual data range
+    norm_img = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX)
+    norm_img = norm_img.astype(np.uint8)
+
+    h, w = norm_img.shape
+    qt_image = QImage(norm_img.data, w, h, w, QImage.Format_Grayscale8)
+    return QPixmap.fromImage(qt_image)
 
 def capture_image(label, exposure_time, total_frames, average_frames, file_path):
     images = []
