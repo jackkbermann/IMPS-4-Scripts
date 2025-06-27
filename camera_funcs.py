@@ -53,7 +53,7 @@ def cv_to_qt(image):
     return QPixmap.fromImage(qt_image)
 
 
-def capture_image(label, exposure_time, total_frames, average_frames, exposure_time_unit, file_path):
+def capture_image(label, exposure_time, total_frames, average_frames, file_path):
     images = []
     if not os.path.exists(file_path):
         os.mkdir(file_path)
@@ -63,13 +63,7 @@ def capture_image(label, exposure_time, total_frames, average_frames, exposure_t
     
     for i in range(average_frames):
         with Camera() as camera:
-            if (exposure_time_unit == 'ms'):
-                    camera.exposure_time = exposure_time * 1e-3
-            elif (exposure_time_unit == 'µs'):
-                camera.exposure_time = exposure_time * 1e-6
-            else: 
-                camera.exposure_time = exposure_time
-
+            camera.exposure_time = exposure_time
             camera.record(number_of_images=frame_count, mode='ring buffer')
 
             while camera.recorded_image_count != total_frames:

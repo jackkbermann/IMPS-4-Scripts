@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
             os.mkdir(f"./{date}")
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, exposure_time_unit, f"./{date}"),
+            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"./{date}"),
             daemon=True)
         self.capture_thread.start()
 
