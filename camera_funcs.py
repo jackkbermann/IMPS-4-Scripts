@@ -41,6 +41,9 @@ def is_camera_connected():
         return False
 
 def cv_to_qt(image):
+    image_8bit = cv2.convertScaleAbs(image, alpha=(255.0/65535.0))
+    h, w = image_8bit.shape
+    qt_image = QImage(image_8bit.data, w, h, w, QImage.Format_Grayscale8)
     if image.dtype != np.uint16:
         image = image.astype(np.uint16)
 
@@ -59,7 +62,7 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path)
 
     # frame count needs to be >= 4
     frame_count = total_frames // average_frames
-    
+
     for i in range(average_frames):
         with Camera() as camera:
             camera.exposure_time = exposure_time
@@ -76,9 +79,5 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path)
             Image.fromarray(image).save(os.path.join(file_path, custom_name))
 
     pixmap = cv_to_qt(images[-1])
-    print(images[-1].shape)
     label.setPixmap(pixmap)
     QApplication.processEvents()
-
-
-

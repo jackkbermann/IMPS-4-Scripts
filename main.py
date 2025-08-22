@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
             return
 
         self.live_thread = QThread()
+        self.live_worker = LiveViewWorker(self.stop_event, exposure_time, exposure_time_unit)
         self.live_worker = LiveViewWorker(self.stop_event, exposure_time)
         self.live_worker.moveToThread(self.live_thread)
 
@@ -78,9 +79,10 @@ class MainWindow(QMainWindow):
         self.live_worker.finished.connect(self.live_worker.deleteLater)
         self.live_thread.finished.connect(self.live_thread.deleteLater)
 
+        self.live_thread.started.connect(self.live_worker.run(exposure_time_unit, exposure_time))
         self.live_thread.started.connect(self.live_worker.run(exposure_time))
         self.live_thread.start()
-    
+
     def stop_live_view(self):
         self.stop_event.set()
         if self.live_thread and self.live_thread.isRunning():
@@ -92,7 +94,6 @@ class MainWindow(QMainWindow):
         exposure_time = self.camera_ui.get_exposure_time(exposure_time_unit)
         total_frames = self.camera_ui.get_total_frames()
         average_frames = self.camera_ui.get_average_frames()
-        print(total_frames, average_frames)
         if exposure_time is None or total_frames is None or average_frames is None:
             return
         if (total_frames % average_frames) != 0:
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow):
 
 
 def main():
-    
+
     QtWidgets.QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     QtWidgets.QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 

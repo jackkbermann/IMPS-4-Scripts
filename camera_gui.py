@@ -44,7 +44,7 @@ class WelcomeScreen(QWidget):
             }
         """)
 
-        
+
 
         # Main layout centered
         layout = QVBoxLayout(self)
@@ -68,7 +68,7 @@ class WelcomeScreen(QWidget):
         layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
         layout.addWidget(self.continue_button, alignment=Qt.AlignCenter)
         layout.addStretch()
-    
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             QApplication.quit() 
@@ -191,6 +191,7 @@ class CameraTabsWidget(QWidget):
         self.capture_label.setFrameShape(QLabel.Box)
         self.capture_label.setScaledContents(True)
         self.capture_label.setAlignment(Qt.AlignCenter)
+        self.capture_label.setStyleSheet("background-color: black; color: white;")
         self.capture_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
 
         capture_layout.addStretch()
@@ -292,7 +293,7 @@ class CameraTabsWidget(QWidget):
             font = btn.font()
             font.setPointSize(11)
             btn.setFont(font)
-        
+
         self.start_capture_button.setMinimumSize(350, 65)
         font = self.start_capture_button.font()
         font.setPointSize(13)
@@ -321,7 +322,7 @@ class CameraTabsWidget(QWidget):
                     "Live view exposure time must be between 21 µs and 5 s."
                 )
                 return None
-        
+
             return exp_time
         except ValueError:
             QMessageBox.critical(
@@ -330,7 +331,7 @@ class CameraTabsWidget(QWidget):
                 "Please enter a valid integer for live view exposure  cagsdf time."
             )
             return None
-    
+
     def get_live_exposure_time(self, exposure_time_unit):
         try:
             if exposure_time_unit == 's':
@@ -361,7 +362,7 @@ class CameraTabsWidget(QWidget):
                 "Please enter a valid integer for live view exposure time."
             )
             return None
-        
+
     def get_total_frames(self):
         try:
             return int(self.frame_line_edit.text())
@@ -385,11 +386,10 @@ class CameraTabsWidget(QWidget):
             return None
     def get_exposure_unit(self):
         return self.exposure_unit_dropdown.currentText()
-    
+
     def get_live_exposure_unit(self):
         return self.live_exposure_unit_dropdown.currentText()
-    
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             QApplication.quit()  # closes everything and stops the event loop
-            sys.exit(0)
