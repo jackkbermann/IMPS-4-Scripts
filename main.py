@@ -15,6 +15,7 @@ def get_current_date():
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # initializes main window
         self.setStyleSheet("background-color: #001f3f;")
         self.setWindowTitle("IMPS4 Camera Control")
         self.resize(1000, 800)
@@ -93,7 +94,7 @@ class MainWindow(QMainWindow):
         exposure_time_unit = self.camera_ui.get_exposure_unit()
         exposure_time = self.camera_ui.get_exposure_time(exposure_time_unit)
         total_frames = self.camera_ui.get_total_frames()
-        average_frames = self.camera_ui.get_average_frames()
+        average_frames = self.camera_ui.get_average_frames(total_frames)
         if exposure_time is None or total_frames is None or average_frames is None:
             return
         if (total_frames % average_frames) != 0:
@@ -107,7 +108,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(
                 self,
                 "Camera Not Connected",
-                "Please connect the camera before starting live view."
+                "Please connect the camera before starting capture."
             )
             return
         date = get_current_date()
@@ -126,6 +127,43 @@ def main():
     QtWidgets.QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
     app = QApplication(sys.argv)
+    
+    # Custom dark blue dialog stylesheet for QMessageBox
+    APP_DIALOG_QSS = """
+    /* Box chrome */
+    QMessageBox {
+        background-color: #001f3f;       /* your dark blue */
+        border: 1px solid #6aa6ff;       /* subtle accent */
+    }
+    /* Main text + informative text */
+    QMessageBox QLabel {
+        color: #ffffff;
+        font-size: 12pt;
+    }
+    /* Optional Details area (when present) */
+    QMessageBox QTextEdit {
+        background-color: #003366;
+        color: #e8eaed;
+        border: 1px solid #2A2F36;
+    }
+    /* Buttons */
+    QMessageBox QPushButton {
+        background-color: #003366;
+        color: #ffffff;
+        border: 1px solid #6aa6ff;
+        border-radius: 6px;
+        padding: 6px 12px;
+    }
+    QMessageBox QPushButton:hover   { background-color: #004080; }
+    QMessageBox QPushButton:pressed { background-color: #00264d; }
+
+    /* Keep the icon background clean */
+    QMessageBox QLabel#qt_msgboxex_icon_label { background: transparent; }
+    """
+
+    # append to any existing app stylesheet (so your page styles stay intact)
+    app.setStyleSheet(app.styleSheet() + APP_DIALOG_QSS)
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

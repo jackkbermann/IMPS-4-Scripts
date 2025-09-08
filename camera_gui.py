@@ -328,7 +328,7 @@ class CameraTabsWidget(QWidget):
             QMessageBox.critical(
                 self,
                 "Invalid Input",
-                "Please enter a valid integer for live view exposure  cagsdf time."
+                "Please enter a valid integer for capture exposure time."
             )
             return None
 
@@ -370,18 +370,46 @@ class CameraTabsWidget(QWidget):
             QMessageBox.critical(
                 self,
                 "Invalid Input",
-                "Please enter a valid integer for number of totalframes."
+                "Please enter a valid integer for number of total frames."
             )
             return None
 
-    def get_average_frames(self):
+    def get_average_frames(self, total_frames):
         try:
+            if int(self.average_line_edit.text()) > total_frames:
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Average frames cannot be greater than total frames."
+                )
+                return None
+            if int(self.average_line_edit.text()) < 1:
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Average frames must be at least 1."
+                )
+                return None
+            if int(self.average_line_edit.text()) * 4  > total_frames :
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Total frames must be at least 4x the number of average frames."
+                )
+                return None
+            if (total_frames % int(self.average_line_edit.text())) != 0:
+                QMessageBox.critical(
+                    self,
+                    "Invalid Input",
+                    "Total frames must be a multiple of average frames."
+                )
+                return None
             return int(self.average_line_edit.text())
         except ValueError:
             QMessageBox.critical(
                 self,
                 "Invalid Input",
-                "Please enter a valid integer for number of totalframes."
+                "Please enter a valid integer for number of average frames."
             )
             return None
     def get_exposure_unit(self):
