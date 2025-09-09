@@ -129,6 +129,9 @@ class CameraTabsWidget(QWidget):
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
         self.live_view_label.setStyleSheet("background-color: black; color: white;")
+        self.live_view_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
+
+        # self.live_view_label.setScaledContents(True)
 
         live_view_layout.addStretch()
         live_view_layout.addWidget(self.live_view_label, alignment=Qt.AlignCenter)
@@ -355,6 +358,7 @@ class CameraTabsWidget(QWidget):
                     "Live view exposure time must be between 21 µs and 5 s."
                 )
                 return None
+            return exp_time
         except ValueError:
             QMessageBox.critical(
                 self,

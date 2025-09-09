@@ -11,27 +11,36 @@ from PIL import Image
 
 class LiveViewWorker(QObject):
     new_pixmap = pyqtSignal(QPixmap)
-    finished = pyqtSignal()
+    finished   = pyqtSignal()
+    error_text = pyqtSignal(str)     # <-- add this
 
     def __init__(self, stop_event, exposure_time):
         super().__init__()
         self.stop_event = stop_event
         self.exposure_time = exposure_time
 
-    def run(self, exposure_time):
-        with Camera() as camera:
-            camera.exposure_time = exposure_time
-            camera.record(number_of_images=100, mode='ring buffer')
+    def run(self):
+        print("Camera recording started for live view.")
+        try:
+            with Camera() as camera:
+                camera.exposure_time = self.exposure_time
+                camera.record(number_of_images=100, mode='ring buffer')
 
-            while not self.stop_event.is_set():
-                camera.wait_for_new_image()
-                image, _ = camera.image()
-                pixmap = u16_to_qpixmap(image)
-                self.new_pixmap.emit(pixmap)
-                time.sleep(0.01)  # avoid overloading the event loop
+                # 👇 send a tiny ping so the label updates immediately
+                self.new_pixmap.emit(QPixmap(1, 1))
 
-            camera.stop()
+                while not self.stop_event.is_set():
+                    camera.wait_for_new_image()
+                    frame, _ = camera.image()
+                    self.new_pixmap.emit(u16_to_qpixmap(frame))
+                
+                camera.stop()
+        except Exception as e:
+            self.error_text.emit(f"LiveViewWorker error: {e}")
+        finally:
             self.finished.emit()
+
+
 
 def is_camera_connected():
     try:
