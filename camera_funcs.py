@@ -40,37 +40,26 @@ def is_camera_connected():
     except Exception:
         return False
 
-def u16_to_qpixmap(u16_image, p_low=1.0, p_high=99.0, gamma=1.0):
+def u16_to_qpixmap(u16_image, invert=False):
     """
-    Convert a 16-bit grayscale numpy array to an 8-bit QPixmap.
-    Uses percentile stretch (p_low..p_high) for clear on-screen contrast.
+    Fixed linear map from 0..65535 -> 0..255 for display.
+    Dark stays black, saturated stays white.
     """
     import numpy as np
-    import cv2
     from PyQt5.QtGui import QImage, QPixmap
 
     if u16_image.dtype != np.uint16:
         u16_image = u16_image.astype(np.uint16, copy=False)
 
-    # Robust autoscale: map the chosen percentile window to 0..255
-    lo, hi = np.percentile(u16_image, (p_low, p_high))
-    if hi <= lo:
-        lo, hi = int(u16_image.min()), int(u16_image.max())
-        if hi <= lo:  # completely flat image
-            scaled = np.zeros_like(u16_image, dtype=np.uint8)
-        else:
-            scaled = ((u16_image - lo) * (255.0 / (hi - lo))).clip(0, 255).astype(np.uint8)
-    else:
-        scaled = ((u16_image - lo) * (255.0 / (hi - lo))).clip(0, 255).astype(np.uint8)
+    scaled = (u16_image >> 8).astype(np.uint8)   # 65536 → 256 levels
 
-    if gamma and gamma != 1.0:
-        inv = 1.0 / max(gamma, 1e-6)
-        # Apply simple gamma in 8-bit space
-        scaled = ((scaled.astype(np.float32) / 255.0) ** inv * 255.0).astype(np.uint8)
+    if invert:
+        scaled = 255 - scaled
 
     h, w = scaled.shape
-    qimg = QImage(scaled.data, w, h, w, QImage.Format_Grayscale8).copy()  # .copy() so memory is owned
+    qimg = QImage(scaled.data, w, h, w, QImage.Format_Grayscale8).copy()
     return QPixmap.fromImage(qimg)
+
 
 def capture_image(label, exposure_time, total_frames, average_frames, file_path):
     images = []
@@ -95,6 +84,6 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path)
             custom_name = f"my_custom_name{i}.tif"
             Image.fromarray(image).save(os.path.join(file_path, custom_name))
 
-    pixmap = u16_to_qpixmap(image)(images[-1])
+    pixmap = u16_to_qpixmap(images[-1])
     label.setPixmap(pixmap)
     QApplication.processEvents()
