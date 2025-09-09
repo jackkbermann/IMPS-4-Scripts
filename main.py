@@ -1,6 +1,7 @@
 from camera_gui import *
 from camera_funcs import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox
+from PyQt5.QtGui import QFont
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QThread
 import sys
@@ -139,6 +140,7 @@ def main():
     QMessageBox QLabel {
         color: #ffffff;
         font-size: 12pt;
+        font-family: "Segoe UI"
     }
     /* Optional Details area (when present) */
     QMessageBox QTextEdit {
@@ -153,6 +155,7 @@ def main():
         border: 1px solid #6aa6ff;
         border-radius: 6px;
         padding: 6px 12px;
+        font-family: "Segoe UI"
     }
     QMessageBox QPushButton:hover   { background-color: #004080; }
     QMessageBox QPushButton:pressed { background-color: #00264d; }
@@ -163,6 +166,7 @@ def main():
 
     # append to any existing app stylesheet (so your page styles stay intact)
     app.setStyleSheet(app.styleSheet() + APP_DIALOG_QSS)
+    app.setFont(QFont("Times New Roman", 12))
 
     window = MainWindow()
     window.show()
