@@ -101,6 +101,7 @@ class MainWindow(QMainWindow):
         exposure_time = self.camera_ui.get_exposure_time(exposure_time_unit)
         total_frames = self.camera_ui.get_total_frames()
         average_frames = self.camera_ui.get_average_frames(total_frames)
+        file_name = self.camera_ui.get_filename()
         if exposure_time is None or total_frames is None or average_frames is None:
             return
         if is_camera_connected() is False:
@@ -111,11 +112,11 @@ class MainWindow(QMainWindow):
             )
             return
         date = get_current_date()
-        if not os.path.exists(f"./{date}"):
-            os.mkdir(f"./{date}")
+        if not os.path.exists(f"../IMPS-4 Data/{date}"):
+            os.mkdir(f"../IMPS-4 Data/{date}")
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"./{date}"),
+            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"../IMPS-4 Data/{date}/", file_name),
             daemon=True)
         self.capture_thread.start()
 

@@ -191,16 +191,15 @@ class CameraTabsWidget(QWidget):
 
         self.capture_label = QLabel("Capture Feed")
         self.capture_label.setMinimumSize(600, 400)
+        self.capture_label.setMaximumWidth(900)
         self.capture_label.setFrameShape(QLabel.Box)
         self.capture_label.setScaledContents(True)
         self.capture_label.setAlignment(Qt.AlignCenter)
-        self.capture_label.setStyleSheet("background-color: black; color: white;")
         self.capture_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
 
         capture_layout.addStretch()
         capture_layout.setContentsMargins(40, 40, 40, 40)
         capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
-        capture_layout.addStretch()
 
         # --- Input controls layout ---
         inputs_layout = QVBoxLayout()
@@ -245,7 +244,7 @@ class CameraTabsWidget(QWidget):
         frame_layout.addStretch()
         inputs_layout.addLayout(frame_layout)
 
-        # Average fram count
+        # Average frame count
         average_layout = QHBoxLayout()
         average_label = QLabel("# of Averaged Frames:")
         self.average_line_edit = QLineEdit()
@@ -257,7 +256,21 @@ class CameraTabsWidget(QWidget):
         average_layout.addStretch()
         inputs_layout.addLayout(average_layout)
 
+        # File name input
+        file_layout = QHBoxLayout()
+        file_label = QLabel("File name:")
+        self.filename_line_edit = QLineEdit()
+        self.filename_line_edit.setPlaceholderText("e.g., sample_01")
+        self.filename_line_edit.setMaximumWidth(200)
+        file_layout.addWidget(file_label)
+        file_layout.addWidget(self.filename_line_edit)
+        file_layout.addStretch()
+        inputs_layout.addLayout(file_layout)
+
+        
         # Add all input layouts to capture layout
+        capture_layout.addSpacing(30)
+
         capture_layout.addLayout(inputs_layout)
 
         # Capture button centered
@@ -421,6 +434,9 @@ class CameraTabsWidget(QWidget):
 
     def get_live_exposure_unit(self):
         return self.live_exposure_unit_dropdown.currentText()
+    
+    def get_filename(self):
+        return self.filename_line_edit.text().strip() or "image"
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:

@@ -70,7 +70,7 @@ def u16_to_qpixmap(u16_image, invert=False):
     return QPixmap.fromImage(qimg)
 
 
-def capture_image(label, exposure_time, total_frames, average_frames, file_path):
+def capture_image(label, exposure_time, total_frames, average_frames, file_path, file_name):
     images = []
     if not os.path.exists(file_path):
         os.mkdir(file_path)
@@ -83,16 +83,19 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path)
             camera.exposure_time = exposure_time
             camera.record(number_of_images=frame_count, mode='ring buffer')
 
-            while camera.recorded_image_count != frame_count:
+            while camera.recorded_image_count < frame_count:
                 time.sleep(0.001)
 
             camera.stop()
 
             image = camera.image_average()
             images.append(image)
-            custom_name = f"my_custom_name{i}.tif"
-            Image.fromarray(image).save(os.path.join(file_path, custom_name))
-
+            # save each image with unique name and 0 padding
+            custom_name = f"{file_name}_{i:03d}.tif"
+            im = Image.fromarray(image.astype(np.uint16), mode="I;16")
+            # save in file directory as tiff file
+            im.save(os.path.join(file_path, custom_name), compression="tiff_lzw")
+            
     pixmap = u16_to_qpixmap(images[-1])
     label.setPixmap(pixmap)
     QApplication.processEvents()
