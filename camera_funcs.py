@@ -70,11 +70,12 @@ def u16_to_qpixmap(u16_image, invert=False):
     return QPixmap.fromImage(qimg)
 
 
-def capture_image(label, exposure_time, total_frames, average_frames, file_path, file_name):
+def capture_image(label, exposure_time, total_frames, average_frames, file_path, file_name, progress_queue=None):
     images = []
     if not os.path.exists(file_path):
         os.mkdir(file_path)
 
+    done = 0
     # frame count needs to be >= 4
     frame_count = total_frames // average_frames
 
@@ -84,7 +85,12 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path,
             camera.record(number_of_images=frame_count, mode='ring buffer')
 
             while camera.recorded_image_count < frame_count:
-                time.sleep(0.001)
+                time.sleep(0.005)
+                if progress_queue:
+                    try:
+                        progress_queue.put_nowait(done + camera.recorded_image_count)
+                    except Exception:
+                        pass
 
             camera.stop()
 
@@ -95,7 +101,14 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path,
             im = Image.fromarray(image.astype(np.uint16), mode="I;16")
             # save in file directory as tiff file
             im.save(os.path.join(file_path, custom_name), compression="tiff_lzw")
-            
+
+        done += frame_count
+        if progress_queue:
+            try:
+                progress_queue.put_nowait(done)
+            except Exception:
+                pass
+
     pixmap = u16_to_qpixmap(images[-1])
     label.setPixmap(pixmap)
     QApplication.processEvents()

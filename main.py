@@ -1,9 +1,10 @@
 from camera_gui import *
 from camera_funcs import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox, QProgressDialog
 from PyQt5.QtGui import QFont
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QThread
+from PyQt5.QtCore import Qt, QThread, QTimer
+from queue import Queue, Empty
 import sys
 import threading
 from datetime import date
@@ -114,12 +115,68 @@ class MainWindow(QMainWindow):
         date = get_current_date()
         if not os.path.exists(f"../IMPS-4 Data/{date}"):
             os.mkdir(f"../IMPS-4 Data/{date}")
+
+        # --- modal progress dialog (blocks interaction) ---
+        dlg = QProgressDialog("Preparing capture…", None, 0, total_frames, self)
+        dlg.setWindowTitle("Capturing")
+        dlg.setCancelButton(None)
+        dlg.setWindowModality(Qt.ApplicationModal)
+        dlg.setAutoClose(False)
+        dlg.setAutoReset(False)
+        dlg.setMinimumDuration(0)
+        dlg.setValue(0)
+        dlg.show()
+
+        # disable tabs hard (optional; dialog modality already blocks clicks)
+        self.camera_ui.tabs.setEnabled(False)
+
+        # progress queue + polling timer
+        pq = Queue()
+        timer = QTimer(self)
+        timer.setInterval(50)  # ms
+        def pump_progress():
+            updated = False
+            while True:
+                try:
+                    cur = pq.get_nowait()
+                except Empty:
+                    break
+                else:
+                    dlg.setValue(cur)
+                    dlg.setLabelText(f"Capturing… {cur}/{total_frames} frames")
+                    updated = True
+            # optional: close if somehow reached end early
+            if updated and dlg.value() >= total_frames:
+                timer.stop()
+        timer.timeout.connect(pump_progress)
+        timer.start()
+        
+
+
+
+
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"../IMPS-4 Data/{date}/", file_name),
+            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"../IMPS-4 Data/{date}/", file_name, pq),
             daemon=True)
+        
+        def capture_finished():
+            timer.stop()
+            dlg.setValue(total_frames)
+            dlg.close()
+            self.camera_ui.tabs.setEnabled(True)
+            # QMessageBox.information(self, "Capture Complete", "Image capture is complete.")
+        
+        
         self.capture_thread.start()
-
+        finish_watch = QTimer(self)
+        finish_watch.setInterval(100)
+        def check_done():
+            if not self.capture_thread.is_alive():
+                finish_watch.stop()
+                capture_finished()
+        finish_watch.timeout.connect(check_done)
+        finish_watch.start()
 
 def main():
 
