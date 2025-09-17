@@ -131,8 +131,10 @@ class CameraTabsWidget(QWidget):
         live_view_layout = QVBoxLayout(live_view_tab)
 
         self.live_view_label = QLabel("Live View Feed")
+        self.live_view_label.setScaledContents(False)     
         self.live_view_label.setMinimumSize(600, 400)
-        self.live_view_label.setMinimumSize(600, 400)
+        self.live_view_label.setMaximumWidth(900)
+        self.live_view_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
         self.live_view_label.setStyleSheet("background-color: black; color: white;")
@@ -214,7 +216,8 @@ class CameraTabsWidget(QWidget):
 
         # --- Input controls layout ---
         inputs_layout = QVBoxLayout()
-        inputs_layout.setContentsMargins(0, 500, 0, 0)
+        inputs_layout.setContentsMargins(0, 20, 0, 0)
+        inputs_layout.setSpacing(15)
 
         # Exposure info for Capture
         capture_exposure_info = QLabel("Max: 5 s | Min: 21 µs")

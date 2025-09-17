@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         self.live_thread.started.connect(self.live_worker.run)
 
         # Update label safely on the GUI thread
-        self.live_worker.new_pixmap.connect(self.camera_ui.live_view_label.setPixmap)
+        self.live_worker.new_pixmap.connect(self.update_live_view)
 
         # Cleanup
         self.live_worker.finished.connect(self.live_thread.quit)
@@ -92,6 +92,13 @@ class MainWindow(QMainWindow):
         self.camera_ui.live_status_label.setText("Status: Live")
         self.camera_ui.live_status_label.setStyleSheet("color: #66ff66; margin-top: 8px;")
 
+    def update_live_view(self, pixmap):
+        # Use the inner rect so padding/border aren’t included
+        target_size = self.camera_ui.live_view_label.contentsRect().size()
+        if target_size.width() <= 0 or target_size.height() <= 0:
+            return
+        scaled = pixmap.scaled(target_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.camera_ui.live_view_label.setPixmap(scaled)
 
     def stop_live_view(self):
         self.stop_event.set()
