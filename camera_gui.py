@@ -13,13 +13,14 @@ class WelcomeScreen(QWidget):
             QWidget {
                 background-color: #001f3f;
                 color: white;
+                font-family: "Calibri";
             }
             QLabel {
-                font-size: 28px;
+                font-size: 60px;
             }
             QLineEdit {
                 padding: 8px;
-                font-size: 16px;
+                font-size: 24px;
                 border-radius: 6px;
                 border: 1px solid #ccc;
                 background-color: #003366;
@@ -53,15 +54,17 @@ class WelcomeScreen(QWidget):
         layout.setAlignment(Qt.AlignCenter)
 
         self.title = QLabel("Welcome to the IMPS4 Camera Control!")
+    
         self.title.setAlignment(Qt.AlignCenter)
 
         self.name_input = QLineEdit()
         self.name_input.setFocusPolicy(Qt.ClickFocus)
         self.name_input.setPlaceholderText("Enter your name")
-        self.name_input.setMaximumWidth(300)
+        self.name_input.setMinimumWidth(460)
         self.name_input.setAlignment(Qt.AlignCenter)
 
         self.continue_button = QPushButton("Continue")
+        self.continue_button.setMinimumWidth(460)
 
         layout.addStretch()
         layout.addWidget(self.title, alignment=Qt.AlignCenter)
@@ -108,15 +111,18 @@ class CameraTabsWidget(QWidget):
                 background: #001f3f;
             }
             QTabBar::tab {
-                background: white;
-                color: #001f3f;
+                background: #555555;      /* unselected: grey */
+                color: white;
                 border: 1px solid black;
                 padding: 7px;
+                min-width: 120px;
             }
             QTabBar::tab:selected {
-                background: #555555;
+                background: white;        /* selected: white */
+                color: #001f3f;           /* dark text when selected */
             }
         """)
+
 
 
         # --------- Live View Tab ----------
@@ -125,6 +131,7 @@ class CameraTabsWidget(QWidget):
         live_view_layout = QVBoxLayout(live_view_tab)
 
         self.live_view_label = QLabel("Live View Feed")
+        self.live_view_label.setMinimumSize(600, 400)
         self.live_view_label.setMinimumSize(600, 400)
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
@@ -181,6 +188,10 @@ class CameraTabsWidget(QWidget):
         live_view_buttons_layout.addWidget(self.stop_live_view_button)
         live_view_layout.addLayout(live_view_buttons_layout)
 
+        self.live_status_label = QLabel("Status: Stopped")
+        self.live_status_label.setStyleSheet("color: #ff6666; margin-top: 8px;")
+        live_view_layout.addWidget(self.live_status_label, alignment=Qt.AlignLeft)
+
 
         self.tabs.addTab(live_view_tab, "Live View")
 
@@ -203,9 +214,11 @@ class CameraTabsWidget(QWidget):
 
         # --- Input controls layout ---
         inputs_layout = QVBoxLayout()
+        inputs_layout.setContentsMargins(0, 500, 0, 0)
 
         # Exposure info for Capture
         capture_exposure_info = QLabel("Max: 5 s | Min: 21 µs")
+    
         inputs_layout.addWidget(capture_exposure_info, alignment=Qt.AlignLeft)
 
         # Exposure time (inline with dropdown)
@@ -235,7 +248,7 @@ class CameraTabsWidget(QWidget):
 
         # Total frame count
         frame_layout = QHBoxLayout()
-        frame_label = QLabel("# of Frames:")
+        frame_label = QLabel("# of Total Frames:")
         self.frame_line_edit = QLineEdit()
         self.frame_line_edit.setPlaceholderText("# of Frames")
         self.frame_line_edit.setMaximumWidth(200)
@@ -269,17 +282,21 @@ class CameraTabsWidget(QWidget):
 
         
         # Add all input layouts to capture layout
-        capture_layout.addSpacing(30)
+        capture_layout.addSpacing(10)
 
         capture_layout.addLayout(inputs_layout)
+        capture_layout.addStretch()
 
         # Capture button centered
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         self.start_capture_button = QPushButton("Start Capture")
+        self.start_capture_button.setMinimumWidth(700)
+        self.capture_label.setAlignment(Qt.AlignCenter)
         button_layout.addWidget(self.start_capture_button)
         button_layout.addStretch()
         capture_layout.addLayout(button_layout)
+    
 
         self.tabs.addTab(capture_tab, "Capture")
 
@@ -304,16 +321,7 @@ class CameraTabsWidget(QWidget):
 
         buttons = [self.start_live_view_button, self.stop_live_view_button, self.start_capture_button]
         for btn in buttons:
-            btn.setMinimumSize(120, 65)
             btn.setStyleSheet(button_style)
-            font = btn.font()
-            font.setPointSize(11)
-            btn.setFont(font)
-
-        self.start_capture_button.setMinimumSize(350, 65)
-        font = self.start_capture_button.font()
-        font.setPointSize(13)
-        self.start_capture_button.setFont(font)
 
     def get_exposure_time(self, exposure_time_unit):
         try:

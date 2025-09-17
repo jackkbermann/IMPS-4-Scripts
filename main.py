@@ -89,6 +89,8 @@ class MainWindow(QMainWindow):
             lambda msg: QMessageBox.critical(self, "Live View Error", msg)
         )
         self.live_thread.start()
+        self.camera_ui.live_status_label.setText("Status: Live")
+        self.camera_ui.live_status_label.setStyleSheet("color: #66ff66; margin-top: 8px;")
 
 
     def stop_live_view(self):
@@ -96,6 +98,8 @@ class MainWindow(QMainWindow):
         if self.live_thread and self.live_thread.isRunning():
             self.live_thread.quit()
             self.live_thread.wait()
+        self.camera_ui.live_status_label.setText("Status: Stopped")
+        self.camera_ui.live_status_label.setStyleSheet("color: #ff6666; margin-top: 8px;")
 
     def start_capture(self):
         exposure_time_unit = self.camera_ui.get_exposure_unit()
@@ -191,12 +195,13 @@ def main():
     QMessageBox {
         background-color: #001f3f;       /* your dark blue */
         border: 1px solid #6aa6ff;       /* subtle accent */
+        font-family: "Calibri";     
     }
     /* Main text + informative text */
     QMessageBox QLabel {
         color: #ffffff;
         font-size: 12pt;
-        font-family: "Segoe UI"
+        font-family: "Calibri"
     }
     /* Optional Details area (when present) */
     QMessageBox QTextEdit {
@@ -211,7 +216,7 @@ def main():
         border: 1px solid #6aa6ff;
         border-radius: 6px;
         padding: 6px 12px;
-        font-family: "Segoe UI"
+        font-family: "Calibri"
     }
     QMessageBox QPushButton:hover   { background-color: #004080; }
     QMessageBox QPushButton:pressed { background-color: #00264d; }
@@ -222,10 +227,10 @@ def main():
 
     # append to any existing app stylesheet (so your page styles stay intact)
     app.setStyleSheet(app.styleSheet() + APP_DIALOG_QSS)
-    app.setFont(QFont("Times New Roman", 12))
+    app.setFont(QFont("Calibri", 18))
 
     window = MainWindow()
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())
 
 if __name__ == "__main__":
