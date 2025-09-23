@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QCheckBox, QComboBox,
-    QLabel, QLineEdit, QApplication, QSizePolicy, QSpacerItem
+    QLabel, QLineEdit, QApplication, QSizePolicy, QSpacerItem, QFrame
 )
 from PyQt5.QtCore import Qt
 import sys
@@ -201,36 +201,51 @@ class CameraTabsWidget(QWidget):
         capture_tab = QWidget()
         capture_tab.setStyleSheet("background-color: #001f3f; color: white;")
         capture_layout = QVBoxLayout(capture_tab)
+        capture_layout.setContentsMargins(40, 40, 40, 24)  # keep image and controls away from edges
+        capture_layout.setSpacing(30)
 
         self.capture_label = QLabel("Capture Feed")
         self.capture_label.setMinimumSize(600, 400)
         self.capture_label.setMaximumWidth(900)
         self.capture_label.setFrameShape(QLabel.Box)
-        self.capture_label.setScaledContents(True)
+        self.capture_label.setScaledContents(True)  # keep if you’re manually scaling pixmaps; otherwise False
         self.capture_label.setAlignment(Qt.AlignCenter)
         self.capture_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
 
         capture_layout.addStretch()
-        capture_layout.setContentsMargins(40, 40, 40, 40)
         capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
+        
+        # EDIT THIS LINE TO FIX ON IMPS COMPUTER
+        capture_layout.addSpacing(300) 
 
         # --- Input controls layout ---
-        inputs_layout = QVBoxLayout()
-        inputs_layout.setContentsMargins(0, 20, 0, 0)
-        inputs_layout.setSpacing(15)
+        controls_frame = QFrame()
+        controls_frame.setStyleSheet("""
+            QFrame {
+                border: 2px solid white;
+                border-radius: 8px;
+                padding: 16px;
+                background-color: #002244;  /* optional */
+            }
+        """)
 
-        # Exposure info for Capture
+        # layout for the frame
+        frame_layout = QHBoxLayout(controls_frame)
+        frame_layout.setSpacing(30)
+        frame_layout.addStretch()
+
+        # Left column
+        left_col = QVBoxLayout()
+        left_col.setSpacing(10)
+
         capture_exposure_info = QLabel("Max: 5 s | Min: 21 µs")
-    
-        inputs_layout.addWidget(capture_exposure_info, alignment=Qt.AlignLeft)
+        left_col.addWidget(capture_exposure_info, alignment=Qt.AlignLeft)
 
-        # Exposure time (inline with dropdown)
         exposure_layout = QHBoxLayout()
         exposure_label = QLabel("Exposure Time:")
         self.exposure_line_edit = QLineEdit()
         self.exposure_line_edit.setPlaceholderText("Exposure time")
-        self.exposure_line_edit.setMaximumWidth(200)
-
+        self.exposure_line_edit.setMaximumWidth(160)
         self.exposure_unit_dropdown = QComboBox()
         self.exposure_unit_dropdown.addItems(["s", "ms", "µs"])
         self.exposure_unit_dropdown.setMaximumWidth(60)
@@ -242,37 +257,40 @@ class CameraTabsWidget(QWidget):
                 color: white;
             }
         """)
-
         exposure_layout.addWidget(exposure_label)
         exposure_layout.addWidget(self.exposure_line_edit)
         exposure_layout.addWidget(self.exposure_unit_dropdown)
         exposure_layout.addStretch()
-        inputs_layout.addLayout(exposure_layout)
+        left_col.addLayout(exposure_layout)
 
-        # Total frame count
-        frame_layout = QHBoxLayout()
+        # Middle column
+        mid_col = QVBoxLayout()
+        mid_col.setSpacing(10)
+
+        frame_layout_row = QHBoxLayout()
         frame_label = QLabel("# of Total Frames:")
         self.frame_line_edit = QLineEdit()
-        self.frame_line_edit.setPlaceholderText("# of Frames")
-        self.frame_line_edit.setMaximumWidth(200)
-        frame_layout.addWidget(frame_label)
-        frame_layout.addWidget(self.frame_line_edit)
-        frame_layout.addStretch()
-        inputs_layout.addLayout(frame_layout)
+        self.frame_line_edit.setPlaceholderText("# of Total Frames")
+        self.frame_line_edit.setMaximumWidth(180)
+        frame_layout_row.addWidget(frame_label)
+        frame_layout_row.addWidget(self.frame_line_edit)
+        frame_layout_row.addStretch()
+        mid_col.addLayout(frame_layout_row)
 
-        # Average frame count
         average_layout = QHBoxLayout()
         average_label = QLabel("# of Averaged Frames:")
         self.average_line_edit = QLineEdit()
         self.average_line_edit.setPlaceholderText("# of Averaged Frames")
-        self.average_line_edit.setMaximumWidth(200)
-        self.average_checkbox = QCheckBox()
+        self.average_line_edit.setMaximumWidth(250)
         average_layout.addWidget(average_label)
         average_layout.addWidget(self.average_line_edit)
         average_layout.addStretch()
-        inputs_layout.addLayout(average_layout)
+        mid_col.addLayout(average_layout)
 
-        # File name input
+        # Right column
+        right_col = QVBoxLayout()
+        right_col.setSpacing(10)
+
         file_layout = QHBoxLayout()
         file_label = QLabel("File name:")
         self.filename_line_edit = QLineEdit()
@@ -281,14 +299,20 @@ class CameraTabsWidget(QWidget):
         file_layout.addWidget(file_label)
         file_layout.addWidget(self.filename_line_edit)
         file_layout.addStretch()
-        inputs_layout.addLayout(file_layout)
+        right_col.addLayout(file_layout)
 
-        
-        # Add all input layouts to capture layout
-        capture_layout.addSpacing(10)
+        # add columns to the frame layout
+        frame_layout.addLayout(left_col)
+        frame_layout.addLayout(mid_col)
+        frame_layout.addLayout(right_col)
+        frame_layout.addStretch()
 
-        capture_layout.addLayout(inputs_layout)
-        capture_layout.addStretch()
+        # finally add the frame to the main capture layout
+        capture_layout.addSpacing(40)
+        capture_layout.addWidget(controls_frame, alignment=Qt.AlignCenter)
+
+
+
 
         # Capture button centered
         button_layout = QHBoxLayout()

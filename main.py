@@ -237,7 +237,8 @@ def main():
     app.setFont(QFont("Calibri", 18))
 
     window = MainWindow()
-    window.showMaximized()
+    window.showFullScreen()
+    QTimer.singleShot(0, window.showFullScreen)
     sys.exit(app.exec())
 
 if __name__ == "__main__":
