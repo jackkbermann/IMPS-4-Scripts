@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
 
         # Connect the continue button to transition
         self.welcome_screen.continue_button.clicked.connect(self.go_to_camera_ui)
+        self.stack.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
 
     def go_to_camera_ui(self):
         name = self.welcome_screen.name_input.text().strip()
@@ -237,9 +239,10 @@ def main():
     app.setFont(QFont("Calibri", 18))
 
     window = MainWindow()
-    window.showFullScreen()
-    QTimer.singleShot(0, window.showFullScreen)
+    window.show()
+
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

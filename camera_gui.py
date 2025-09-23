@@ -131,7 +131,7 @@ class CameraTabsWidget(QWidget):
         live_view_layout = QVBoxLayout(live_view_tab)
 
         self.live_view_label = QLabel("Live View Feed")
-        self.live_view_label.setScaledContents(False)     
+        self.live_view_label.setScaledContents(True)     
         self.live_view_label.setMinimumSize(600, 400)
         self.live_view_label.setMaximumWidth(900)
         self.live_view_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -201,12 +201,12 @@ class CameraTabsWidget(QWidget):
         capture_tab = QWidget()
         capture_tab.setStyleSheet("background-color: #001f3f; color: white;")
         capture_layout = QVBoxLayout(capture_tab)
-        capture_layout.setContentsMargins(40, 40, 40, 24)  # keep image and controls away from edges
-        capture_layout.setSpacing(30)
+        capture_layout.setContentsMargins(10, 10, 10, 24)  # keep image and controls away from edges
+        capture_layout.setSpacing(70)
 
         self.capture_label = QLabel("Capture Feed")
-        self.capture_label.setMinimumSize(600, 400)
-        self.capture_label.setMaximumWidth(900)
+        self.capture_label.setMinimumSize(500, 375)
+        self.capture_label.setMaximumWidth(800)
         self.capture_label.setFrameShape(QLabel.Box)
         self.capture_label.setScaledContents(True)  # keep if you’re manually scaling pixmaps; otherwise False
         self.capture_label.setAlignment(Qt.AlignCenter)
@@ -216,15 +216,15 @@ class CameraTabsWidget(QWidget):
         capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
         
         # EDIT THIS LINE TO FIX ON IMPS COMPUTER
-        capture_layout.addSpacing(300) 
+        capture_layout.addSpacing(400) 
 
         # --- Input controls layout ---
         controls_frame = QFrame()
         controls_frame.setStyleSheet("""
             QFrame {
                 border: 2px solid white;
-                border-radius: 8px;
-                padding: 16px;
+                border-radius: 10px;
+                padding: 5px;
                 background-color: #002244;  /* optional */
             }
         """)
@@ -308,7 +308,7 @@ class CameraTabsWidget(QWidget):
         frame_layout.addStretch()
 
         # finally add the frame to the main capture layout
-        capture_layout.addSpacing(40)
+        capture_layout.addSpacing(100)
         capture_layout.addWidget(controls_frame, alignment=Qt.AlignCenter)
 
 
