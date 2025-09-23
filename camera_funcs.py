@@ -60,6 +60,7 @@ def u16_to_qpixmap(u16_image, invert=False):
     if u16_image.dtype != np.uint16:
         u16_image = u16_image.astype(np.uint16, copy=False)
 
+    u16_image = np.flipud(u16_image)  # Flip vertically for correct orientation
     scaled = (u16_image >> 8).astype(np.uint8)   # 65536 → 256 levels
 
     if invert:
