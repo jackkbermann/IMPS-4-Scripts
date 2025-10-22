@@ -11,12 +11,13 @@ from PIL import Image
 class LiveViewWorker(QObject):
     new_pixmap = pyqtSignal(QPixmap)
     finished   = pyqtSignal()
-    error_text = pyqtSignal(str)     # <-- add this
+    error_text = pyqtSignal(str)  
 
     def __init__(self, stop_event, exposure_time):
         super().__init__()
         self.stop_event = stop_event
         self.exposure_time = exposure_time
+        
 
     def run(self):
         print("Camera recording started for live view.")
@@ -25,13 +26,14 @@ class LiveViewWorker(QObject):
                 camera.exposure_time = self.exposure_time
                 camera.record(number_of_images=100, mode='ring buffer')
 
-                # 👇 send a tiny ping so the label updates immediately
                 self.new_pixmap.emit(QPixmap(1, 1))
 
                 while not self.stop_event.is_set():
+                    gamma_value = getattr(self, 'gamma_value', 1.0)
                     camera.wait_for_new_image()
                     frame, _ = camera.image()
-                    self.new_pixmap.emit(u16_to_qpixmap(frame))
+                    self.new_pixmap.emit(QPixmap.fromImage(u16_to_qimage(frame, autostretch=True, low_pct=0.5, high_pct=99.5, gamma=1.0)))
+
                 
                 camera.stop()
         except Exception as e:
@@ -48,29 +50,42 @@ def is_camera_connected():
     except Exception:
         return False
 
-def u16_to_qpixmap(u16_image, invert=False):
-    """
-    Fixed linear map from 0..65535 -> 0..255 for display.
-    Dark stays black, saturated stays white.
-    """
-    import numpy as np
-    from PyQt5.QtGui import QImage, QPixmap
+def u16_to_qimage(u16_image, invert=False, autostretch=True, low=None, high=None, low_pct=0.5, high_pct=99.5, gamma=1.0):
+    a = u16_image
+    if a.dtype != np.uint16:
+        a = a.astype(np.uint16, copy=False)
 
-    if u16_image.dtype != np.uint16:
-        u16_image = u16_image.astype(np.uint16, copy=False)
+    a = np.flipud(a)  
 
-    u16_image = np.flipud(u16_image)  # Flip vertically for correct orientation
-    scaled = (u16_image >> 8).astype(np.uint8)   # 65536 → 256 levels
+    if autostretch and (low is None or high is None):
+        low, high = np.percentile(a, [low_pct, high_pct])
+        if low >= high:  # guard
+            low, high = 0, 65535
 
+    if low is None:  low  = 0
+    if high is None: high = 65535
+
+    # gamma: <1 brightens midtones, >1 darkens
+    # gamma first, then autostretch
+    if gamma != 1.0:
+        a = np.power(a.astype(np.float32) / 65535.0, 1.0 / gamma) * 65535.0
+
+
+    scaled = (a - float(low)) / max(1.0, float(high - low))
+    scaled = np.clip(scaled, 0.0, 1.0)
+
+
+    # invert if needed
     if invert:
-        scaled = 255 - scaled
+        scaled = 1.0 - scaled
 
-    h, w = scaled.shape
-    qimg = QImage(scaled.data, w, h, w, QImage.Format_Grayscale8).copy()
-    return QPixmap.fromImage(qimg)
+    u8 = (scaled * 255.0 + 0.5).astype(np.uint8)
+    h, w = u8.shape
+    return QImage(u8.data, w, h, w, QImage.Format_Grayscale8).copy()
 
 
-def capture_image(label, exposure_time, total_frames, average_frames, file_path, file_name, progress_queue=None):
+
+def capture_image(label, exposure_time, total_frames, average_frames, file_path, file_name, gamma_value, progress_queue=None):
     images = []
     if not os.path.exists(file_path):
         os.mkdir(file_path)
@@ -109,6 +124,7 @@ def capture_image(label, exposure_time, total_frames, average_frames, file_path,
             except Exception:
                 pass
 
-    pixmap = u16_to_qpixmap(images[-1])
-    label.setPixmap(pixmap)
+
+    qimg = u16_to_qimage(images[-1], autostretch=True, low_pct=0.5, high_pct=99.5, gamma=gamma_value)
+    label.setPixmap(QPixmap.fromImage(qimg))
     QApplication.processEvents()

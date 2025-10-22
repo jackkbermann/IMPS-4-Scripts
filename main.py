@@ -1,13 +1,20 @@
 from camera_gui import *
 from camera_funcs import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox, QProgressDialog
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QImage, QPixmap
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QThread, QTimer
 from queue import Queue, Empty
 import sys
 import threading
+import cv2
+import logging
+import pco
 from datetime import date
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(pco.stream_handler)
 
 
 def get_current_date():
@@ -52,6 +59,9 @@ class MainWindow(QMainWindow):
         if not self.setup_done:
             self.setup_connections()
             self.setup_done = True
+        
+        QApplication.processEvents()
+        self.showMaximized()
 
 
     def setup_connections(self):
@@ -61,6 +71,11 @@ class MainWindow(QMainWindow):
 
     def start_live_view(self):
         self.stop_event.clear()
+
+        self.camera_ui.gamma_slider_live.valueChanged.connect(
+            lambda val: setattr(self.live_worker, "gamma", val / 100.0)
+        )
+
 
         exposure_time_unit = self.camera_ui.get_live_exposure_unit()
         exposure_time = self.camera_ui.get_live_exposure_time(exposure_time_unit)
@@ -74,6 +89,8 @@ class MainWindow(QMainWindow):
 
         self.live_thread = QThread(self)
         self.live_worker = LiveViewWorker(self.stop_event, exposure_time)
+        gamma_val = self.camera_ui.gamma_slider_live.value() / 100.0
+        self.live_worker.gamma = gamma_val
         self.live_worker.moveToThread(self.live_thread)
 
         # When thread starts, invoke worker.run (no args now)
@@ -167,12 +184,12 @@ class MainWindow(QMainWindow):
 
 
 
-
+        gamma_val = self.camera_ui.gamma_slider_capture.value() / 100.0
         self.capture_thread = threading.Thread(
             target=capture_image,
-            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"../IMPS-4 Data/{date}/", file_name, pq),
+            args=(self.camera_ui.capture_label, exposure_time, total_frames, average_frames, f"../IMPS-4 Data/{date}/", file_name, gamma_val, pq),
             daemon=True)
-        
+           
         def capture_finished():
             timer.stop()
             dlg.setValue(total_frames)

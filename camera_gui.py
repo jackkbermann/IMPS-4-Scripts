@@ -132,19 +132,47 @@ class CameraTabsWidget(QWidget):
 
         self.live_view_label = QLabel("Live View Feed")
         self.live_view_label.setScaledContents(True)     
-        self.live_view_label.setMinimumSize(600, 400)
+        self.live_view_label.setMinimumSize(700, 375)
         self.live_view_label.setMaximumWidth(900)
         self.live_view_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.live_view_label.setFrameShape(QLabel.Box)
         self.live_view_label.setAlignment(Qt.AlignCenter)
         self.live_view_label.setStyleSheet("background-color: black; color: white;")
-        self.live_view_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
+        self.live_view_label.setStyleSheet("background-color: black; padding: 5px; border: 2px solid #333;")
 
         # self.live_view_label.setScaledContents(True)
 
+        # --- Layout with live view + gamma slider ---
+        live_row_layout = QHBoxLayout()
+        live_row_layout.setSpacing(20)
+
+        self.live_view_label = QLabel("Live View Feed")
+        self.live_view_label.setScaledContents(True)
+        self.live_view_label.setMinimumSize(700, 375)
+        self.live_view_label.setMaximumWidth(900)
+        self.live_view_label.setFrameShape(QLabel.Box)
+        self.live_view_label.setAlignment(Qt.AlignCenter)
+        self.live_view_label.setStyleSheet("background-color: black; padding: 5px; border: 2px solid #333;")
+
+        # --- Gamma slider ---
+        from PyQt5.QtWidgets import QSlider
+        self.gamma_slider_live = QSlider(Qt.Vertical)
+        self.gamma_slider_live.setMinimum(30)   # represents 0.3
+        self.gamma_slider_live.setMaximum(300)  # represents 3.0
+        self.gamma_slider_live.setValue(100)    # default 1.0
+        self.gamma_slider_live.setMinimumHeight(375)
+        self.gamma_slider_live.setTickPosition(QSlider.TicksRight)
+        self.gamma_slider_live.setToolTip("Adjust display gamma")
+
+        live_row_layout.addStretch()
+        live_row_layout.addWidget(self.live_view_label, alignment=Qt.AlignCenter)
+        live_row_layout.addWidget(self.gamma_slider_live, alignment=Qt.AlignCenter)
+        live_row_layout.addStretch()
+
         live_view_layout.addStretch()
-        live_view_layout.addWidget(self.live_view_label, alignment=Qt.AlignCenter)
+        live_view_layout.addLayout(live_row_layout)
         live_view_layout.addStretch()
+
 
         # --- Exposure info and input for Live View ---
         # --- Exposure section for Live View (left-aligned, like Capture) ---
@@ -212,8 +240,25 @@ class CameraTabsWidget(QWidget):
         self.capture_label.setAlignment(Qt.AlignCenter)
         self.capture_label.setStyleSheet("background-color: black; padding: 20px; border: 2px solid #333;")
 
+        capture_row_layout = QHBoxLayout()
+        capture_row_layout.setSpacing(20)
+
+        self.gamma_slider_capture = QSlider(Qt.Vertical)
+        self.gamma_slider_capture.setMinimum(70)
+        self.gamma_slider_capture.setMaximum(130)
+        self.gamma_slider_capture.setMinimumHeight(375)
+        self.gamma_slider_capture.setValue(100)
+        self.gamma_slider_capture.setTickPosition(QSlider.TicksRight)
+        self.gamma_slider_capture.setToolTip("Adjust display gamma")
+
+        capture_row_layout.addStretch()
+        capture_row_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
+        capture_row_layout.addWidget(self.gamma_slider_capture, alignment=Qt.AlignCenter)
+        capture_row_layout.addStretch()
+
         capture_layout.addStretch()
-        capture_layout.addWidget(self.capture_label, alignment=Qt.AlignCenter)
+        capture_layout.addLayout(capture_row_layout)
+
         
         # EDIT THIS LINE TO FIX ON IMPS COMPUTER
         capture_layout.addSpacing(400) 
